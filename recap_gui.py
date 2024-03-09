@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton
 from PyQt5.QtCore import QThread, pyqtSignal
 import requests
+import textwrap
+import json
 
 class FetchThread(QThread):
     fetched = pyqtSignal(str)
@@ -13,8 +15,27 @@ class FetchThread(QThread):
         self.token = token
 
     def run(self):
-        data = self.fetch_data_from_api(self.num_commits, self.repo_name, self.owner, self.token)
-        self.fetched.emit(data)
+        detailed_commits = self.fetch_data_from_api(self.num_commits, self.repo_name, self.owner, self.token)
+        summarized_commits = self.summarize_commits(detailed_commits)
+        self.fetched.emit(summarized_commits)
+
+    def summarize_commits(self, commit_details):
+        summaries = []
+        for detail in commit_details.split('---\n'):  # Assuming details are separated by '---\n'
+            if detail.strip():  # Ensure the detail isn't just whitespace
+                data = {
+                    "model": "llama2",
+                    "prompt": f"Summarize my commit: {detail}",
+                    "stream": False
+                }
+                response = requests.post("http://localhost:11434/api/generate", data=json.dumps(data))
+                if response.status_code == 200:
+                    response_json = response.json()
+                    summaries.append(response_json['response'])
+                else:
+                    summaries.append("Failed to summarize commit.")
+        return '\n'.join(summaries)
+
 
     def fetch_data_from_api(self, num_commits, repo_name, owner, token):
         # Convert num_commits to a numeric value if needed
@@ -58,5 +79,5 @@ if __name__ == "__main__":
     app = QApplication([])
     ui = RecapGUI()
     ui.show()
-    ui.create_recap("last commit", "freshsesh")  # Adjust parameters as needed
+    ui.create_recap("last 3 commits", "freshsesh")  # Adjust parameters as needed
     app.exec_()

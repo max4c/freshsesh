@@ -9,7 +9,7 @@ class FreshSeshAI(QWidget):
     def __init__(self,fresh_sesh):
         super().__init__()
         self.fresh_sesh_app = fresh_sesh_app
-
+        self.recap_instance = None 
         # Set window title
         self.setWindowTitle("FreshSesh AI")
 
@@ -99,13 +99,12 @@ class FreshSeshAI(QWidget):
 
     def run(self):
         if self.comboBox1.currentText() and self.comboBox2.currentText():
-            recap_instance = RecapGUI()
-            # Calling create_recap on the instance, passing comboBox1 and comboBox2's current texts
-            recap_instance.create_recap(self.comboBox1.currentText(), self.comboBox2.currentText())
+            self.recap_instance = RecapGUI()
+             # Pass a reference to self if you want to manipulate the parent from RecapGUI or for later use
+            self.recap_instance.create_recap(self.comboBox1.currentText(), self.comboBox2.currentText())
+            self.recap_instance.show()  # Make sure to show the recap_instance if it's not already visible
 
             
-
-
 
 # Main loop
 if __name__ == "__main__":
