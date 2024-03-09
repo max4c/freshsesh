@@ -1,14 +1,13 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QListWidgetItem, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QListWidget, QComboBox, QFrame
 from PyQt5.QtGui import QFontDatabase, QFont, QColor, QPalette
 from PyQt5.QtCore import Qt
-from formula_manager import FormulaManager
 from menu_app import FreshSeshApp
+from recap_gui import RecapGUI
 import os
 
 class FreshSeshAI(QWidget):
-    def __init__(self,formula_manager,fresh_sesh):
+    def __init__(self,fresh_sesh):
         super().__init__()
-        self.formula_manager = formula_manager
         self.fresh_sesh_app = fresh_sesh_app
 
         # Set window title
@@ -87,72 +86,32 @@ class FreshSeshAI(QWidget):
         layout.addLayout(line_layout)
 
         # Buttons
-        self.confirm_button = QPushButton("Confirm")
-        self.confirm_button.clicked.connect(self.confirm)
+        self.run_button = QPushButton("Run")
+        self.run_button.clicked.connect(self.run)
 
         self.list_widget = QListWidget()
 
         # Add button and list widget to the main layout
-        layout.addWidget(self.confirm_button)
-        layout.addWidget(self.list_widget)
+        layout.addWidget(self.run_button)
 
         self.setLayout(layout)
 
 
-    def confirm(self):
+    def run(self):
         if self.comboBox1.currentText() and self.comboBox2.currentText():
-            # Using QLabel to get formatted string on one line
-            formula = f"Give me a recap of my {self.comboBox1.currentText()} for repo {self.comboBox2.currentText()}"
-            text = QLabel(formula)
-            self.formula_manager.add_formula(formula)
-            #self.fresh_sesh_app.refresh_menu() 
-            # QPushButton for removing this item
-            minus_button = QPushButton('-')
-            minus_button.clicked.connect(self.delete_item)
+            recap_instance = RecapGUI()
+            # Calling create_recap on the instance, passing comboBox1 and comboBox2's current texts
+            recap_instance.create_recap(self.comboBox1.currentText(), self.comboBox2.currentText())
+
             
-            # Create a QWidget to hold the QLabel and QPushButton
-            widget = QWidget()
-            layout = QHBoxLayout()
-            widget.setLayout(layout)
-            
-            # Add the QLabel and QPushButton to the layout
-            layout.addWidget(text)
-            layout.addWidget(minus_button)
-            
-            # Using QListWidgetItem to add the QWidget to the QListWidget
-            item = QListWidgetItem(self.list_widget)
-            item.setSizeHint(widget.sizeHint())  # Make the QListWidgetItem big enough to fit the QWidget
-            self.list_widget.setItemWidget(item, widget)
-
-
-    def delete_item(self):
-        # Find the QPushButton that sent the signal and delete its parent QListWidgetItem
-        button = self.sender()
-        item = self.list_widget.itemAt(self.list_widget.mapFromGlobal(button.mapToGlobal(button.rect().center())))
-        
-        # Get the widget that holds the formula text and button
-        widget = self.list_widget.itemWidget(item)
-
-        # Get the QLabel that holds the formula text
-        formula_widget = widget.layout().itemAt(0).widget()
-        
-        # Get the formula text
-        formula = formula_widget.text()
-
-        # Remove the formula from the formula manager
-        self.formula_manager.remove_formula(formula)
-        #self.fresh_sesh_app.refresh_menu() 
-
-        self.list_widget.takeItem(self.list_widget.row(item))
 
 
 
 # Main loop
 if __name__ == "__main__":
     app = QApplication([])
-    formula_manager = FormulaManager()  # create instance of FormulaManager
-    fresh_sesh_app = FreshSeshApp(formula_manager)
-    window = FreshSeshAI(formula_manager,fresh_sesh_app)  # pass it to FreshSeshAI
+    fresh_sesh_app = FreshSeshApp()
+    window = FreshSeshAI(fresh_sesh_app)  # pass it to FreshSeshAI
     window.resize(250, 150)  # You can adjust this size as needed
     window.show()
     app.exec_()
