@@ -1,11 +1,15 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QListWidgetItem, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QListWidget, QComboBox, QFrame
 from PyQt5.QtGui import QFontDatabase, QFont, QColor, QPalette
 from PyQt5.QtCore import Qt
+from formula_manager import FormulaManager
+from menu_app import FreshSeshApp
 import os
 
 class FreshSeshAI(QWidget):
-    def __init__(self):
+    def __init__(self,formula_manager,fresh_sesh):
         super().__init__()
+        self.formula_manager = formula_manager
+        self.fresh_sesh_app = fresh_sesh_app
 
         # Set window title
         self.setWindowTitle("FreshSesh AI")
@@ -66,17 +70,17 @@ class FreshSeshAI(QWidget):
         palette.setColor(QPalette.Text, QColor('blue'))
         # For QComboBoxes
         line_layout = QHBoxLayout()
-        label1 = QLabel("When")
+        label1 = QLabel("Give me a recap of my")
         line_layout.addWidget(label1)
         self.comboBox1 = QComboBox()
-        self.comboBox1.addItems(["","I open a project in VS Code"])
+        self.comboBox1.addItems(["","last commit","last 2 commits","last 3 commits"])
         self.comboBox1.setPalette(palette)
         line_layout.addWidget(self.comboBox1)
 
-        label2 = QLabel("Give me a recap of")
+        label2 = QLabel("for repo")
         line_layout.addWidget(label2)
         self.comboBox2 = QComboBox()
-        self.comboBox2.addItems(["","my last commit","my last 2 commits","my last 3 commits"])
+        self.comboBox2.addItems(["","freshsesh","chess"])
         self.comboBox2.setPalette(palette)
         line_layout.addWidget(self.comboBox2)
 
@@ -98,8 +102,10 @@ class FreshSeshAI(QWidget):
     def confirm(self):
         if self.comboBox1.currentText() and self.comboBox2.currentText():
             # Using QLabel to get formatted string on one line
-            text = QLabel(f"When {self.comboBox1.currentText()} - Give me a recap of {self.comboBox2.currentText()}")
-            
+            formula = f"Give me a recap of my {self.comboBox1.currentText()} for repo {self.comboBox2.currentText()}"
+            text = QLabel(formula)
+            self.formula_manager.add_formula(formula)
+            #self.fresh_sesh_app.refresh_menu() 
             # QPushButton for removing this item
             minus_button = QPushButton('-')
             minus_button.clicked.connect(self.delete_item)
@@ -123,13 +129,30 @@ class FreshSeshAI(QWidget):
         # Find the QPushButton that sent the signal and delete its parent QListWidgetItem
         button = self.sender()
         item = self.list_widget.itemAt(self.list_widget.mapFromGlobal(button.mapToGlobal(button.rect().center())))
+        
+        # Get the widget that holds the formula text and button
+        widget = self.list_widget.itemWidget(item)
+
+        # Get the QLabel that holds the formula text
+        formula_widget = widget.layout().itemAt(0).widget()
+        
+        # Get the formula text
+        formula = formula_widget.text()
+
+        # Remove the formula from the formula manager
+        self.formula_manager.remove_formula(formula)
+        #self.fresh_sesh_app.refresh_menu() 
+
         self.list_widget.takeItem(self.list_widget.row(item))
+
 
 
 # Main loop
 if __name__ == "__main__":
     app = QApplication([])
-    window = FreshSeshAI()
+    formula_manager = FormulaManager()  # create instance of FormulaManager
+    fresh_sesh_app = FreshSeshApp(formula_manager)
+    window = FreshSeshAI(formula_manager,fresh_sesh_app)  # pass it to FreshSeshAI
     window.resize(250, 150)  # You can adjust this size as needed
     window.show()
     app.exec_()
