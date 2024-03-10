@@ -67,7 +67,7 @@ class RecapGUI(QWidget):
         self.layout.addWidget(self.message_label)
         self.setLayout(self.layout)
 
-    def create_recap(self, num_commits, repo_name, owner="max4c", token="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"):
+    def create_recap(self, num_commits, repo_name, owner="max4c", token="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"):
         self.fetch_thread = FetchThread(num_commits, repo_name, owner, token)
         self.fetch_thread.fetched.connect(self.update_ui)
         self.fetch_thread.start()
