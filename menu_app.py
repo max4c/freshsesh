@@ -13,7 +13,6 @@ class FreshSeshApp(rumps.App):
 
     @rumps.clicked("Manage Formulas")
     def manage_formulas(self, _):
-        # substitute '/path/to/your/gui.py' with actual path to your gui.py file
         subprocess.run(['python3', 'gui.py'])
 
 if __name__ == "__main__":

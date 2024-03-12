@@ -1,5 +1,8 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton
 from PyQt5.QtCore import QThread, pyqtSignal
+from dotenv import load_dotenv
+load_dotenv()
+import os
 import requests
 import textwrap
 import json
@@ -25,7 +28,7 @@ class FetchThread(QThread):
             if detail.strip():  # Ensure the detail isn't just whitespace
                 data = {
                     "model": "llama2",
-                    "prompt": f"Summarize my commit: {detail}",
+                    "prompt": f"Summarize my commit(s), use bullet point format: {detail}",
                     "stream": False
                 }
                 response = requests.post("http://localhost:11434/api/generate", data=json.dumps(data))
@@ -38,7 +41,6 @@ class FetchThread(QThread):
 
 
     def fetch_data_from_api(self, num_commits, repo_name, owner, token):
-        # Convert num_commits to a numeric value if needed
         num_commits_map = {"last commit": 1, "last 2 commits": 2, "last 3 commits": 3}
         num_commits = num_commits_map.get(num_commits, 1)  # Default to 1 if no match
 
@@ -63,11 +65,12 @@ class RecapGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.layout = QVBoxLayout()
-        self.message_label = QLabel("Creating recap in...")
+        self.message_label = QLabel("Creating recap...")
         self.layout.addWidget(self.message_label)
         self.setLayout(self.layout)
 
-    def create_recap(self, num_commits, repo_name, owner="max4c", token="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"):
+    def create_recap(self, num_commits, repo_name, owner="max4c", token=os.getenv('GITHUB_ACCESS_KEY')):
+        print(token)
         self.fetch_thread = FetchThread(num_commits, repo_name, owner, token)
         self.fetch_thread.fetched.connect(self.update_ui)
         self.fetch_thread.start()
@@ -79,5 +82,5 @@ if __name__ == "__main__":
     app = QApplication([])
     ui = RecapGUI()
     ui.show()
-    ui.create_recap("last 3 commits", "freshsesh")  # Adjust parameters as needed
+    ui.create_recap("last 3 commits", "freshsesh") 
     app.exec_()

@@ -10,7 +10,7 @@ data = {
 }
 
 response = requests.post(url, data=json.dumps(data))
-response_json = response.json()  # Use this if you expect a json response
+response_json = response.json()
 response_value = response_json['response']
 
 print(response_value)
